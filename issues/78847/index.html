@@ -993,6 +993,14 @@ document.addEventListener('click', function() {
 });
 
 
+// === BLOCK RELOAD ===
+var glitchStarted = false;
+window.addEventListener('beforeunload', function(e) {
+    if (!glitchStarted) return;
+    e.preventDefault();
+    e.returnValue = '';
+});
+
 // === GLITCH EFFECT ===
 // Test timings (seconds). Change to production before deploy:
 // Production: [45, 75, 95, 110, 120]
@@ -1033,6 +1041,7 @@ setTimeout(function() {
 
 // Phase 2: slow text corruption
 setTimeout(function() {
+    glitchStarted = true;
     var iv = setInterval(corruptChar, 3000);
     // Phase 3: accelerate + shake
     setTimeout(function() {
