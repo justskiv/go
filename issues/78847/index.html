@@ -261,8 +261,7 @@
             min-width: 200px; padding: 4px 0; z-index: 100;
             box-shadow: 0 8px 24px rgba(1,4,9,0.75);
         }
-        .gh-dropdown-wrap:focus-within .gh-dropdown,
-        .gh-dropdown-wrap:hover .gh-dropdown { display: block; }
+        .gh-dropdown-wrap.open .gh-dropdown { display: block; }
         .gh-dropdown-header { padding: 8px 16px; font-size: 12px; font-weight: 600; color: #e6edf3; border-bottom: 1px solid #30363d; }
         .gh-dropdown a {
             display: block; padding: 8px 16px; font-size: 14px; color: #e6edf3; text-decoration: none;
@@ -321,7 +320,7 @@
 
 <div class="gh-header-bar">
     <div class="gh-dropdown-wrap">
-        <div class="gh-hamburger" tabindex="0">
+        <div class="gh-hamburger">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="#e6edf3"><path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75ZM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5Z"></path></svg>
         </div>
         <div class="gh-dropdown" style="left:0;right:auto;">
@@ -344,7 +343,7 @@
     </div>
     <div class="gh-header-right">
         <div class="gh-dropdown-wrap">
-            <div class="gh-icon-btn with-dropdown" tabindex="0"><svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M6.5 4.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM6.5 11.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path></svg><span class="dropdown-caret"></span></div>
+            <div class="gh-icon-btn with-dropdown"><svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M6.5 4.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM6.5 11.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path></svg><span class="dropdown-caret"></span></div>
             <div class="gh-dropdown">
                 <div class="gh-dropdown-header">Open in</div>
                 <a href="https://github.com/codespaces">GitHub Codespaces</a>
@@ -353,7 +352,7 @@
         </div>
         <span style="border-left:1px solid #30363d;height:24px;margin:0 4px;display:inline-flex;"></span>
         <div class="gh-dropdown-wrap">
-            <div class="gh-icon-btn with-dropdown" tabindex="0"><svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"></path></svg><span class="dropdown-caret"></span></div>
+            <div class="gh-icon-btn with-dropdown"><svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"></path></svg><span class="dropdown-caret"></span></div>
             <div class="gh-dropdown">
                 <div class="gh-dropdown-header">Create new</div>
                 <a href="https://github.com/new">New repository</a>
@@ -716,7 +715,10 @@
                     </div>
                     <div class="project-status-row">
                         <span class="status-label">Status</span>
-                        <select class="project-status-select"><option>Incoming</option></select>
+                        <span style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+                            <span style="background:#21262d;border:1px solid #30363d;border-radius:12px;padding:2px 12px;font-size:12px;color:#e6edf3;">Incoming</span>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path></svg>
+                        </span>
                     </div>
                 </div>
             </section>
@@ -761,5 +763,21 @@
     </div>
 </div>
 
+<script>
+document.querySelectorAll('.gh-dropdown-wrap').forEach(function(wrap) {
+    var trigger = wrap.querySelector('.gh-hamburger, .gh-icon-btn');
+    if (trigger) {
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var wasOpen = wrap.classList.contains('open');
+            document.querySelectorAll('.gh-dropdown-wrap.open').forEach(function(w) { w.classList.remove('open'); });
+            if (!wasOpen) wrap.classList.add('open');
+        });
+    }
+});
+document.addEventListener('click', function() {
+    document.querySelectorAll('.gh-dropdown-wrap.open').forEach(function(w) { w.classList.remove('open'); });
+});
+</script>
 </body>
 </html>
