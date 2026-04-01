@@ -534,11 +534,11 @@
 
                         <p>To strictly adhere to the Go 1 compatibility promise, <code>class</code> and <code>extends</code> are implemented as <strong>contextual keywords</strong>, parsed only in type declaration position. Existing code using <code>class</code> or <code>extends</code> as variable names, field names, or in any other position will continue to compile unchanged.</p>
 
-                        <p>The mechanism is purely additive.</p>
+                        <p><strong>Update:</strong> @rsc has independently verified that no package in the public module index uses <code>class</code> or <code>extends</code> as identifiers in type declaration position. The mechanism is purely additive.</p>
 
                         <h2>Implementation</h2>
 
-                        <p>A working prototype is available at <a href="https://youtu.be/mLW35YMzELE?t=62">github.com/JustSkiv/go-inherit</a>, based on <code>go1.26</code>. It passes 97.3% of the standard library tests. The remaining failures are primarily in <code>reflect</code> and <code>encoding/gob</code>, which require updates to handle the new <code>reflect.Class</code> type metadata.</p>
+                        <p>A working prototype is available at <a href="https://youtu.be/mLW35YMzELE?t=62">github.com/JustSkiv/go-inherit</a>, based on <code>go1.26</code>. <strong>Update:</strong> after fixes from feedback, it now passes 98.1% of the standard library tests (up from 97.3%). The remaining failures are in <code>reflect</code> and <code>encoding/gob</code>, which require updates to handle the new <code>reflect.Class</code> type metadata.</p>
 
                         <p>The implementation touches:</p>
 
@@ -548,7 +548,7 @@
                             <li><code>reflect</code>: support for class type inspection</li>
                         </ul>
 
-                        <p>Estimated total diff: ~3,200 lines added, ~400 removed.</p>
+                        <p>Estimated total diff: ~3,200 lines added, ~400 removed. Compilation overhead is negligible — vtable generation adds &lt;0.3% to compile time on the standard library benchmark.</p>
 
                         <p><em>/cc <a href="https://github.com/rsc">@rsc</a> <a href="https://github.com/griesemer">@griesemer</a> <a href="https://github.com/ianlancetaylor">@ianlancetaylor</a></em></p>
                     </div>
@@ -1080,6 +1080,12 @@ setTimeout(function() {
                 clearInterval(iv3);
                 document.body.style.animation = 'none';
                 document.body.style.filter = 'none';
+                document.body.style.cssText = 'overflow:hidden!important;margin:0!important;padding:0!important;width:100vw!important;max-width:100vw!important;';
+                document.documentElement.style.cssText = 'overflow:hidden!important;width:100vw!important;max-width:100vw!important;';
+                document.querySelector('.gh-header-bar').style.display = 'none';
+                document.querySelector('.repo-nav-bar').style.display = 'none';
+                document.querySelector('.issue-page').style.display = 'none';
+                window.scrollTo(0, 0);
                 document.getElementById('panic-overlay').style.display = 'flex';
                 typewriterPanic();
                 setTimeout(tryPlayAudio, 4000);
@@ -1143,9 +1149,10 @@ function typewriterPanic() {
     100% { transform: translate(0, 1px); }
 }
 #panic-overlay {
-    display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: #000; z-index: 99999; flex-direction: column; justify-content: flex-start;
-    padding: 40px; overflow: hidden;
+    display: none; position: fixed; inset: 0; margin: 0;
+    width: 100vw; height: 100vh; height: 100dvh;
+    background: #000; z-index: 2147483647; flex-direction: column; justify-content: flex-start;
+    padding: 20px; box-sizing: border-box; overflow: auto; -webkit-overflow-scrolling: touch;
 }
 #panic-text {
     font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
@@ -1163,7 +1170,7 @@ function typewriterPanic() {
 
 <div id="panic-overlay">
     <pre id="panic-text"></pre>
-    <div id="panic-msg">Happy April Fools' Day 🐹<br><br><a href="javascript:location.reload()">reload page</a></div>
+    <div id="panic-msg">Happy April Fools' Day 🐹<br><br><a href="https://youtu.be/qaaa3RsC0FQ?t=1297">Bonus 🎁</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="javascript:location.reload()">reload page</a></div>
 </div>
 </body>
 </html>
