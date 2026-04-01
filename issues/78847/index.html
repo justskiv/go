@@ -2,7 +2,7 @@
 <html lang="en" data-color-mode="dark" data-dark-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>proposal: spec: add classical inheritance to Go · Issue #78847 · golang/go · GitHub</title>
     <meta property="og:title" content="proposal: spec: add classical inheritance to Go · Issue #78847 · golang/go">
     <meta property="og:description" content="This proposal introduces single classical inheritance to Go via two context-sensitive keywords: class and extends.">
@@ -263,6 +263,101 @@
             margin-left: 2px; margin-top: 2px;
         }
         .search-icon { fill: #8d96a0; margin-right: 4px; flex-shrink: 0; }
+
+        @media (max-width: 768px) {
+            html, body { overflow-x: hidden; max-width: 100vw; }
+
+            /* Header — simplified like real mobile GitHub */
+            .gh-header-bar { padding: 0 12px; gap: 8px; }
+            .gh-logo svg { height: 28px; width: 28px; }
+            .gh-search { display: none; }
+            .gh-header-right { margin-left: auto; gap: 8px; }
+            .gh-header-right .gh-dropdown-wrap { display: none; } /* hide grid + */
+            .gh-header-right > span[style*="border-left"] { display: none; } /* hide separator */
+            .gh-header-right > svg { display: none; } /* hide individual icons */
+            .gh-header-right > span[style*="position:relative"] { display: inline-flex; } /* keep inbox */
+            .gh-avatar-nav { width: 28px; height: 28px; }
+            /* Add mobile search icon before inbox */
+            .gh-header-right::before {
+                content: ''; display: block; width: 28px; height: 28px; border-radius: 6px;
+                border: 1px solid #30363d; background: #21262d;
+                background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 16 16' fill='%238b949e' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat; background-position: center;
+                flex-shrink: 0; order: -1;
+            }
+
+            /* Repo nav — show Code, Issues, then "More ▾" */
+            .repo-nav-bar { padding: 0 12px; }
+            .repo-nav-bar a { padding: 10px 10px; font-size: 14px; }
+            .repo-nav-bar a:nth-child(n+3) { display: none; } /* hide from Pull requests onward */
+            .repo-nav-bar::after {
+                content: 'More ▾'; display: flex; align-items: center;
+                padding: 10px 10px; color: #e6edf3; font-size: 14px; white-space: nowrap;
+            }
+
+            /* Issue page */
+            .issue-page { padding: 16px 12px; max-width: 100vw; }
+            .issue-title-row { flex-wrap: wrap; }
+            .issue-title { font-size: 22px; line-height: 1.3; }
+            .issue-number { font-size: 22px; }
+            .issue-title-row { flex-direction: column; align-items: flex-start; }
+            .new-issue-btn { order: -1; font-size: 13px; padding: 5px 14px; margin-bottom: 8px; margin-left: 0; align-self: flex-start; }
+            .issue-meta { flex-wrap: wrap; gap: 6px; }
+            .issue-layout { grid-template-columns: 1fr; gap: 16px; }
+
+            /* Timeline */
+            .timeline-main::before { left: 13px; }
+            .comment { grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
+            .comment-avatar, .comment-avatar img { width: 28px; height: 28px; }
+            .comment-box { min-width: 0; max-width: 100%; }
+            .comment-box::before { left: -6px; top: 9px; width: 6px; height: 12px; }
+            .comment-box::after { left: -4px; top: 10px; width: 5px; height: 10px; }
+            .comment-header { flex-wrap: wrap; gap: 4px; padding: 6px 10px; font-size: 13px; }
+            .comment-body { padding: 10px 12px; overflow-wrap: break-word; word-break: break-word; }
+            .comment-body h2 { font-size: 17px; }
+            .comment-body h3 { font-size: 15px; }
+            .comment-body pre { font-size: 11px; padding: 10px; overflow-x: auto; max-width: calc(100vw - 80px); }
+            .comment-body code { font-size: 12px; }
+            .comment-body ul { padding-left: 1.5em; }
+            .comment-reactions { padding: 6px 10px; flex-wrap: wrap; }
+            .code-copy { width: 24px; height: 24px; top: 4px; right: 4px; }
+
+            /* Timeline events */
+            .timeline-event { grid-template-columns: 28px 1fr; gap: 8px; }
+            .timeline-icon { width: 28px; height: 28px; }
+
+            /* Add comment */
+            .add-comment { grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
+            .add-comment-avatar { width: 28px; height: 28px; }
+            .add-comment-textarea { min-height: 100px; }
+
+            /* Comments — avatar overlaps header top-left like real mobile GitHub */
+            .comment { display: block; position: relative; margin-bottom: 16px; }
+            .comment > .comment-avatar,
+            .comment > a.comment-avatar {
+                position: absolute; left: 8px; top: 8px; width: 24px; height: 24px; z-index: 2;
+            }
+            .comment > .comment-avatar img,
+            .comment > a.comment-avatar img { width: 24px; height: 24px; }
+            .comment-box { margin-left: 0; border: 1px solid #30363d; border-radius: 6px; }
+            .comment-box.op { border-color: #30363d; }
+            .comment-box.op .comment-header { background: #161b22; border-color: #30363d; }
+            .comment-box::before, .comment-box::after { display: none; }
+            .comment-header { padding-left: 36px; min-height: 32px; display: flex; align-items: center; }
+            .timeline-main::before { display: none; }
+            .add-comment { display: block; margin-top: 24px; }
+            .add-comment-avatar { display: none; }
+            .add-comment-box { margin: 0; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; }
+            .add-comment-box::before, .add-comment-box::after { display: none; }
+            .add-comment-textarea { width: calc(100% - 16px); min-height: 120px; box-sizing: border-box; }
+            .add-comment-footer { padding: 8px; }
+            .add-comment-footer .btn-secondary, .add-comment-footer .btn-primary { font-size: 13px; padding: 5px 12px; }
+
+            /* Sidebar */
+            .sidebar { order: 2; }
+            .sidebar section { padding: 12px 0; }
+            .participant-list { flex-wrap: wrap; }
+        }
 
         .gh-dropdown-wrap { position: relative; display: inline-flex; }
         .gh-dropdown {
@@ -1022,7 +1117,7 @@ window.addEventListener('beforeunload', function(e) {
 // === GLITCH EFFECT ===
 // Test timings (seconds). Change to production before deploy:
 // Production: [45, 75, 95, 110, 120]
-var T = [5, 10, 15, 20, 25]; // test timings
+var T = [4, 8, 12, 18, 24, 28];
 
 var glitchChars = '▓░█▒╗╔║╚╝├┤╣╠╬◘◙☺☻♠♣♦♥▲▼◄►';
 var textNodes = [];
@@ -1088,7 +1183,7 @@ setTimeout(function() {
                 window.scrollTo(0, 0);
                 document.getElementById('panic-overlay').style.display = 'flex';
                 typewriterPanic();
-                setTimeout(tryPlayAudio, 4000);
+                setTimeout(tryPlayAudio, (T[5] - T[4]) * 1000);
             }, (T[4] - T[3]) * 1000);
         }, (T[3] - T[2]) * 1000);
     }, (T[2] - T[1]) * 1000);
