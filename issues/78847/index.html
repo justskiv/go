@@ -991,6 +991,151 @@ document.querySelectorAll('.gh-dropdown-wrap').forEach(function(wrap) {
 document.addEventListener('click', function() {
     document.querySelectorAll('.gh-dropdown-wrap.open').forEach(function(w) { w.classList.remove('open'); });
 });
+
+
+// === GLITCH EFFECT ===
+// Test timings (seconds). Change to production before deploy:
+// Production: [45, 75, 95, 110, 120]
+var T = [5, 10, 15, 20, 25]; // test timings
+
+var glitchChars = '▓░█▒╗╔║╚╝├┤╣╠╬◘◙☺☻♠♣♦♥▲▼◄►';
+var textNodes = [];
+(function collectText(node) {
+    if (node.nodeType === 3 && node.textContent.trim().length > 1) {
+        textNodes.push(node);
+    } else {
+        for (var i = 0; i < node.childNodes.length; i++) collectText(node.childNodes[i]);
+    }
+})(document.querySelector('.issue-page'));
+
+function corruptChar() {
+    if (!textNodes.length) return;
+    var node = textNodes[Math.floor(Math.random() * textNodes.length)];
+    var t = node.textContent;
+    if (t.length < 2) return;
+    var p = Math.floor(Math.random() * t.length);
+    var a = t.split('');
+    a[p] = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+    node.textContent = a.join('');
+}
+
+// Phase 1: subtle flickers
+setTimeout(function() {
+    var b = document.body;
+    function flicker() {
+        b.style.opacity = '0.92';
+        setTimeout(function() { b.style.opacity = '1'; }, 60);
+    }
+    flicker();
+    setTimeout(flicker, 4000);
+    setTimeout(flicker, 7000);
+}, T[0] * 1000);
+
+// Phase 2: slow text corruption
+setTimeout(function() {
+    var iv = setInterval(corruptChar, 3000);
+    // Phase 3: accelerate + shake
+    setTimeout(function() {
+        clearInterval(iv);
+        var iv2 = setInterval(function() {
+            corruptChar(); corruptChar();
+        }, 400);
+        document.body.style.animation = 'glitchShake 0.05s infinite';
+        // Phase 4: chaos
+        setTimeout(function() {
+            clearInterval(iv2);
+            var iv3 = setInterval(function() {
+                for (var i = 0; i < 8; i++) corruptChar();
+            }, 100);
+            document.body.style.filter = 'hue-rotate(90deg)';
+            // Phase 5: blackout → panic
+            setTimeout(function() {
+                clearInterval(iv3);
+                document.body.style.animation = 'none';
+                document.body.style.filter = 'none';
+                document.getElementById('panic-overlay').style.display = 'flex';
+                typewriterPanic();
+            }, (T[4] - T[3]) * 1000);
+        }, (T[3] - T[2]) * 1000);
+    }, (T[2] - T[1]) * 1000);
+}, T[1] * 1000);
+
+function typewriterPanic() {
+    var lines = [
+        'fatal error: unexpected signal during runtime execution',
+        '',
+        '[signal SIGSEGV: segmentation violation code=0x2 addr=0x0 pc=0x104a3f28]',
+        '',
+        'goroutine 1 [running]:',
+        'runtime.throw({0x104c1a0?, 0x1?})',
+        '\t/usr/local/go/src/runtime/panic.go:1077 +0x48 fp=0xc000047e80',
+        'runtime.sigpanic()',
+        '\t/usr/local/go/src/runtime/signal_unix.go:399 +0x290 fp=0xc000047ed0',
+        'github.com/golang/go/internal/proposal.(*InheritanceEngine).Resolve(0xc0000b4000, {0x104f3e20, 0x3})',
+        '\t/usr/local/go/src/internal/proposal/inheritance.go:247 +0x1a8 fp=0xc000047f50',
+        'github.com/golang/go/internal/proposal.(*VtableBuilder).Build(0xc0000c2000)',
+        '\t/usr/local/go/src/internal/proposal/vtable.go:89 +0x340 fp=0xc000047f80',
+        'cmd/compile/internal/gc.(*ClassChecker).Verify(0xc0000d0000, {0x104f1a20, 0x7})',
+        '\t/usr/local/go/src/cmd/compile/internal/gc/class.go:156 +0x2f8',
+        'main.main()',
+        '\t/tmp/go-build3957386218/b001/exe/main.go:14 +0x68 fp=0xc000047fb0',
+        '',
+        'goroutine 2 [force gc (idle)]:',
+        'runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)',
+        '\t/usr/local/go/src/runtime/proc.go:402 +0xce fp=0xc000043fb0',
+        '',
+        'exit status 2',
+    ];
+    var pre = document.getElementById('panic-text');
+    var full = lines.join('\n');
+    var i = 0;
+    var speed = 12;
+    function type() {
+        if (i < full.length) {
+            pre.textContent += full[i];
+            i++;
+            setTimeout(type, full[i-1] === '\n' ? 200 : speed);
+        } else {
+            setTimeout(function() {
+                var msg = document.getElementById('panic-msg');
+                msg.style.opacity = '1';
+            }, 3000);
+        }
+    }
+    setTimeout(type, 1500);
+}
 </script>
+
+<style>
+@keyframes glitchShake {
+    0% { transform: translate(1px, 0); }
+    25% { transform: translate(-2px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, 0); }
+    100% { transform: translate(0, 1px); }
+}
+#panic-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #000; z-index: 99999; flex-direction: column; justify-content: flex-start;
+    padding: 40px; overflow: hidden;
+}
+#panic-text {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13px; line-height: 1.5; color: #e6edf3; white-space: pre-wrap; word-break: break-all;
+    margin: 0;
+}
+#panic-msg {
+    margin-top: 40px; text-align: center; font-size: 18px; color: #8b949e;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    opacity: 0; transition: opacity 1.5s;
+}
+#panic-msg a { color: #58a6ff; text-decoration: none; }
+#panic-msg a:hover { text-decoration: underline; }
+</style>
+
+<div id="panic-overlay">
+    <pre id="panic-text"></pre>
+    <div id="panic-msg">Happy April Fools' Day 🐹<br><br><a href="javascript:location.reload()">reload page</a></div>
+</div>
 </body>
 </html>
