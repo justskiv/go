@@ -26,11 +26,7 @@ The link to the "prototype repository" leads to a Rick Astley video.
 
 ## Live
 
-Hosted via GitHub Pages:
-
-```
-https://justskiv.github.io/go/issues/78847
-```
+Hosted via GitHub Pages: **https://justskiv.github.io/go/issues/78847**
 
 ## Disclaimer
 
