@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en" data-color-mode="dark" data-dark-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>proposal: spec: add classical inheritance to Go · Issue #78847 · golang/go · GitHub</title>
+    <meta property="og:title" content="proposal: spec: add classical inheritance to Go · Issue #78847 · golang/go">
+    <meta property="og:description" content="This proposal introduces single classical inheritance to Go via two context-sensitive keywords: class and extends.">
+    <meta property="og:site_name" content="GitHub">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://github.githubassets.com/images/modules/open_graph/github-logo.png">
+    <link rel="icon" type="image/svg+xml" href="https://github.githubassets.com/favicons/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="https://github.githubassets.com/favicons/favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            font-size: 14px; line-height: 1.5; color: #e6edf3; background: #0d1117;
+        }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .gh-header-bar {
+            background: #010409; border-bottom: 1px solid #30363d;
+            padding: 0 16px; height: 48px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .gh-hamburger {
+            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 6px; cursor: pointer; color: #e6edf3;
+        }
+        .gh-logo { display: flex; align-items: center; margin-right: 4px; }
+        .gh-logo svg { fill: #e6edf3; }
+        .gh-repo-link { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; }
+        .gh-repo-link span.sep { color: #656d76; font-weight: 400; padding: 0 2px; }
+        .gh-repo-link a { color: #e6edf3; font-weight: 600; }
+        .gh-search {
+            flex: 1; max-width: 272px; margin-left: auto;
+            background: #0d1117; border: 1px solid #30363d;
+            border-radius: 6px; padding: 3px 12px; height: 30px;
+            color: #8d96a0; font-size: 14px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .gh-search kbd { border: 1px solid #30363d; border-radius: 4px; padding: 0 5px; font-size: 11px; color: #656d76; font-family: inherit; }
+        .gh-header-right { display: flex; align-items: center; gap: 8px; margin-left: 8px; }
+        .gh-header-right svg { fill: #e6edf3; cursor: pointer; }
+        .gh-icon-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 6px;
+            border: 1px solid #30363d; background: #21262d; cursor: pointer;
+        }
+        .gh-icon-btn svg { fill: #e6edf3; }
+        .gh-avatar-nav {
+            width: 28px; height: 28px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 1px solid #30363d;
+        }
+        .gh-avatar-nav img { width: 100%; height: 100%; object-fit: cover; }
+
+        .repo-nav-bar {
+            background: #0d1117; border-bottom: 1px solid #30363d;
+            padding: 0 24px; display: flex; gap: 0; overflow-x: auto;
+        }
+        .repo-nav-bar a {
+            display: flex; align-items: center; gap: 6px;
+            padding: 12px 12px; color: #e6edf3; font-size: 14px;
+            border-bottom: 2px solid transparent; white-space: nowrap; text-decoration: none;
+        }
+        .repo-nav-bar a:hover { border-bottom-color: #30363d; }
+        .repo-nav-bar a.active { font-weight: 600; border-bottom-color: #f78166; }
+        .repo-nav-bar a svg { fill: #8b949e; }
+        .repo-nav-bar a.active svg { fill: #e6edf3; }
+        .nav-count { background: #30363d; color: #e6edf3; border-radius: 10px; padding: 0 6px; font-size: 12px; font-weight: 500; }
+
+        .issue-page { max-width: 1280px; margin: 0 auto; padding: 24px 24px; }
+        .issue-title-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .issue-title { font-size: 32px; font-weight: 400; line-height: 1.25; color: #e6edf3; }
+        .issue-number { font-size: 32px; font-weight: 300; color: #656d76; margin-left: 4px; }
+        .new-issue-btn {
+            margin-left: auto; align-self: center;
+            background: #238636; color: #fff; border: 1px solid rgba(240,246,252,0.1);
+            border-radius: 6px; padding: 5px 16px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap;
+        }
+        .issue-meta {
+            display: flex; align-items: center; gap: 8px;
+            padding-bottom: 16px; border-bottom: 1px solid #30363d; margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .issue-state {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 500; color: #fff; background: #238636;
+        }
+        .issue-state svg { fill: #fff; width: 16px; height: 16px; }
+        .issue-meta-text { color: #8b949e; font-size: 14px; }
+        .issue-meta-text a { color: #e6edf3; font-weight: 600; }
+
+        .issue-layout { display: grid; grid-template-columns: 1fr 296px; gap: 24px; }
+
+        .timeline-main { position: relative; }
+        .timeline-main::before {
+            content: ''; position: absolute; left: 19px; top: 0; bottom: 0; width: 2px; background: #30363d; z-index: 0;
+        }
+
+        .comment { display: grid; grid-template-columns: 40px 1fr; gap: 16px; margin-bottom: 16px; position: relative; z-index: 1; }
+        .comment-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; }
+        .avatar-placeholder {
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 16px;
+        }
+
+        .comment-box { border: 1px solid #30363d; border-radius: 6px; background: #0d1117; position: relative; }
+        .comment-box::before {
+            content: ''; position: absolute; top: 11px; left: -8px; width: 8px; height: 16px;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%); background: #30363d;
+        }
+        .comment-box::after {
+            content: ''; position: absolute; top: 12px; left: -6px; width: 7px; height: 14px;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%); background: #161b22;
+        }
+        .comment-box.op { border-color: #1b4b91; }
+        .comment-box.op .comment-header { background: #121d2f; border-color: #1b4b91; }
+        .comment-box.op::before { background: #1b4b91; }
+        .comment-box.op::after { background: #121d2f; }
+
+        .comment-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; background: #161b22;
+            border-bottom: 1px solid #30363d; border-radius: 6px 6px 0 0; font-size: 14px;
+        }
+        .comment-header .author { font-weight: 600; color: #e6edf3; text-decoration: none; }
+        .comment-header .timestamp { color: #8b949e; }
+        .comment-header .label-badge {
+            border: 1px solid #30363d; border-radius: 12px; padding: 0 7px; font-size: 12px; font-weight: 500; color: #8b949e;
+        }
+        .comment-header .label-badge.contributor { border-color: #2f5e2f; color: #3fb950; }
+        .comment-header .edits { color: #8b949e; font-size: 14px; cursor: pointer; }
+        .comment-header .edits::after { content: ' ▾'; font-size: 10px; }
+        .comment-header .spacer { flex: 1; }
+        .comment-header .dots { color: #8b949e; cursor: pointer; font-size: 18px; }
+
+        .comment-body { padding: 16px; font-size: 14px; line-height: 1.6; color: #e6edf3; }
+        .comment-body p { margin-bottom: 16px; }
+        .comment-body p:last-child { margin-bottom: 0; }
+        .comment-body h2 {
+            font-size: 20px; font-weight: 600; margin: 24px 0 16px;
+            padding-bottom: 8px; border-bottom: 1px solid #30363d;
+        }
+        .comment-body h2:first-child { margin-top: 0; }
+        .comment-body h3 { font-size: 16px; font-weight: 600; margin: 20px 0 12px; }
+        .comment-body code {
+            background: rgba(110,118,129,0.4); padding: 2px 6px; border-radius: 6px; font-size: 85%;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        }
+        .comment-body pre {
+            background: #161b22; border-radius: 6px; padding: 16px; overflow-x: auto;
+            margin-bottom: 16px; font-size: 85%; line-height: 1.45; border: 1px solid #30363d; position: relative;
+        }
+        .comment-body pre code { background: none; padding: 0; font-size: 100%; }
+        .comment-body ul { padding-left: 2em; margin-bottom: 16px; }
+        .comment-body li { margin-bottom: 4px; }
+        .comment-body blockquote { border-left: 4px solid #30363d; padding: 0 16px; color: #8b949e; margin-bottom: 16px; }
+        .comment-body strong { color: #e6edf3; }
+        .comment-body em { color: #8b949e; }
+
+        .kw { color: #ff7b72; } .typ { color: #79c0ff; } .str { color: #a5d6ff; }
+        .fn { color: #d2a8ff; } .cm { color: #8b949e; } .field { color: #ffa657; }
+
+        .code-copy {
+            position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 6px;
+            background: #21262d; border: 1px solid #30363d;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .code-copy svg { fill: #8b949e; }
+
+        .comment-reactions { padding: 8px 16px; border-top: 1px solid #30363d; display: flex; gap: 4px; flex-wrap: wrap; }
+        .reaction-btn {
+            display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px;
+            border: 1px solid #30363d; border-radius: 12px; font-size: 12px;
+            background: #161b22; cursor: pointer; color: #8b949e; white-space: nowrap;
+        }
+        .reaction-btn:hover { background: #21262d; }
+        .reaction-btn.reacted { background: #121d2f; border-color: #1b4b91; color: #58a6ff; }
+        .reaction-add {
+            display: inline-flex; align-items: center; padding: 2px 6px;
+            border: 1px solid transparent; border-radius: 12px; cursor: pointer; color: #8b949e;
+        }
+
+        .sidebar section { padding: 16px 0; border-bottom: 1px solid #21262d; }
+        .sidebar section:first-child { padding-top: 0; }
+        .sidebar-title { font-size: 12px; font-weight: 600; color: #e6edf3; margin-bottom: 8px; }
+        .sidebar-item { font-size: 12px; color: #8b949e; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+        .sidebar-item a { color: #e6edf3; }
+
+        .gh-label { display: inline-block; padding: 0 7px; border-radius: 12px; font-size: 12px; font-weight: 500; line-height: 20px; white-space: nowrap; margin: 2px; }
+        .label-proposal { background: #0e8a16; color: #fff; }
+        .label-lang-change { background: #5319e7; color: #fff; }
+        .label-go2 { background: #c2e0c6; color: #1c4428; }
+
+        .project-widget { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 10px 12px; margin-top: 4px; }
+        .project-widget-title { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #e6edf3; margin-bottom: 6px; }
+        .project-widget-title svg { fill: #8b949e; }
+        .project-status-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+        .project-status-row .status-label { color: #8b949e; }
+        .project-status-select {
+            background: #21262d; border: 1px solid #30363d; color: #e6edf3;
+            border-radius: 6px; padding: 2px 24px 2px 8px; font-size: 12px; appearance: none; cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 8.825a.5.5 0 0 1-.354-.146l-3.5-3.5a.5.5 0 0 1 .708-.708L6 7.618l3.146-3.147a.5.5 0 0 1 .708.708l-3.5 3.5A.5.5 0 0 1 6 8.825z' fill='%238b949e'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 6px center;
+        }
+        .milestone-widget { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+        .milestone-name { font-size: 14px; font-weight: 600; color: #e6edf3; }
+        .milestone-due { font-size: 12px; color: #8b949e; margin-top: 2px; }
+
+        .timeline-event {
+            display: grid; grid-template-columns: 40px 1fr; gap: 16px;
+            margin-bottom: 16px; position: relative; z-index: 1; align-items: center;
+        }
+        .timeline-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; justify-self: center; background: #0d1117;
+        }
+        .timeline-event-text { font-size: 14px; color: #8b949e; }
+        .timeline-event-text a { color: #e6edf3; font-weight: 600; }
+
+        .participant-list { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+        .participant-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 600; font-size: 11px; cursor: pointer;
+            overflow: hidden;
+        }
+        .avatar-img {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;
+        }
+        .issue-number-copy {
+            display: inline-flex; align-items: center; cursor: pointer;
+            margin-left: 8px; color: #656d76; vertical-align: middle;
+        }
+        .issue-number-copy:hover { color: #58a6ff; }
+        .dev-btn {
+            display: flex; align-items: center; gap: 8px; justify-content: center;
+            background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+            border-radius: 6px; padding: 5px 16px; font-size: 14px; font-weight: 500;
+            cursor: pointer; white-space: nowrap; width: 100%; margin-top: 8px;
+        }
+        .dev-btn:hover { background: #30363d; }
+        .dev-btn svg { fill: #8b949e; }
+        .dev-btn-wrap { display: flex; align-items: center; gap: 4px; }
+        .dev-btn .chevron { margin-left: auto; }
+        .gh-icon-btn.with-dropdown {
+            display: flex; align-items: center; gap: 0; padding: 0 8px 0 10px;
+            width: auto;
+        }
+        .gh-icon-btn.with-dropdown .dropdown-caret {
+            border: 4px solid transparent; border-top-color: #e6edf3;
+            margin-left: 2px; margin-top: 2px;
+        }
+        .search-icon { fill: #8d96a0; margin-right: 4px; flex-shrink: 0; }
+
+        .add-comment { display: grid; grid-template-columns: 40px 1fr; gap: 16px; margin-top: 16px; position: relative; z-index: 1; }
+        .add-comment-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: #21262d;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .add-comment-avatar svg { fill: #8b949e; }
+        .add-comment-box {
+            border: 1px solid #30363d; border-radius: 6px; background: #0d1117; position: relative;
+        }
+        .add-comment-box::before {
+            content: ''; position: absolute; top: 11px; left: -8px; width: 8px; height: 16px;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%); background: #30363d;
+        }
+        .add-comment-box::after {
+            content: ''; position: absolute; top: 12px; left: -6px; width: 7px; height: 14px;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%); background: #0d1117;
+        }
+        .add-comment-tabs {
+            display: flex; border-bottom: 1px solid #30363d; padding: 8px 8px 0;
+        }
+        .add-comment-tab {
+            padding: 8px 16px; font-size: 14px; color: #8b949e; cursor: pointer;
+            border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0;
+            background: none; margin-bottom: -1px;
+        }
+        .add-comment-tab.active { color: #e6edf3; border-color: #30363d; background: #0d1117; }
+        .add-comment-textarea {
+            width: 100%; min-height: 150px; background: #161b22; border: 1px solid #30363d;
+            border-radius: 6px; color: #e6edf3; font-size: 14px; font-family: inherit;
+            padding: 8px 12px; margin: 8px; box-sizing: border-box; resize: vertical;
+        }
+        .add-comment-textarea::placeholder { color: #484f58; }
+        .add-comment-textarea:focus { outline: none; border-color: #1f6feb; }
+        .add-comment-footer {
+            display: flex; justify-content: flex-end; gap: 8px; padding: 8px 8px 8px;
+        }
+        .add-comment-footer .btn-secondary {
+            background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+            border-radius: 6px; padding: 5px 16px; font-size: 14px; font-weight: 500; cursor: pointer;
+        }
+        .add-comment-footer .btn-primary {
+            background: #238636; color: #fff; border: 1px solid rgba(240,246,252,0.1);
+            border-radius: 6px; padding: 5px 16px; font-size: 14px; font-weight: 500; cursor: pointer;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="gh-header-bar">
+    <div class="gh-hamburger">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="#e6edf3"><path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75ZM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5Z"></path></svg>
+    </div>
+    <div class="gh-logo">
+        <svg height="32" viewBox="0 0 16 16" width="32"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
+    </div>
+    <div class="gh-repo-link">
+        <a href="https://github.com/golang">golang</a><span class="sep">/</span><a href="https://github.com/golang/go">go</a>
+    </div>
+    <div class="gh-search">
+        <span style="display:flex;align-items:center;"><svg class="search-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path></svg> Type <kbd>/</kbd> to search</span>
+    </div>
+    <div class="gh-header-right">
+        <div class="gh-icon-btn with-dropdown"><svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M3.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm3.5 1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM3.5 3a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm3.5 1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM3.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm3.5 1.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path></svg><span class="dropdown-caret"></span></div>
+        <span style="border-left:1px solid #30363d;height:24px;margin:0 4px;display:inline-flex;"></span>
+        <div class="gh-icon-btn with-dropdown"><svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"></path></svg><span class="dropdown-caret"></span></div>
+        <svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path></svg>
+        <svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path></svg>
+        <svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M2.8 2.06A1.75 1.75 0 0 1 4.41 1h7.18c.7 0 1.333.417 1.61 1.06l2.74 6.395c.04.093.06.194.06.295v4.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25v-4.5c0-.101.02-.202.06-.295Zm1.61.44a.25.25 0 0 0-.23.152L1.887 8.5H3.75a.75.75 0 0 1 .53.22l.614.614a.25.25 0 0 0 .177.073h5.858a.25.25 0 0 0 .177-.073l.614-.614A.75.75 0 0 1 12.25 8.5h1.863L11.82 2.652a.25.25 0 0 0-.23-.152Zm9.84 7.5h-2.07l-.614.614A1.75 1.75 0 0 1 10.07 11H5.93a1.75 1.75 0 0 1-1.237-.513l-.613-.614H1.5v4c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25Z"></path></svg>
+        <svg height="16" viewBox="0 0 16 16" width="16" fill="#e6edf3"><path d="M8 16a2 2 0 0 0 1.985-1.75c.017-.137-.097-.25-.235-.25h-3.5c-.138 0-.252.113-.235.25A2 2 0 0 0 8 16ZM3 5a5 5 0 0 1 10 0v2.947c0 .05.015.098.042.139l1.703 2.555A1.519 1.519 0 0 1 13.482 13H2.518a1.516 1.516 0 0 1-1.263-2.36l1.703-2.554A.255.255 0 0 0 3 7.947Zm5-3.5A3.5 3.5 0 0 0 4.5 5v2.947c0 .346-.102.683-.294.97l-1.703 2.556a.017.017 0 0 0-.003.01l.001.006c0 .002.002.004.004.006l.006.004.007.001h10.964l.007-.001.006-.004.004-.006.001-.007a.017.017 0 0 0-.003-.01l-1.703-2.554a1.745 1.745 0 0 1-.294-.97V5A3.5 3.5 0 0 0 8 1.5Z"></path></svg>
+        <div class="gh-avatar-nav"><img class="avatar-img" src="avatar.png" alt=""></div>
+    </div>
+</div>
+
+<div class="repo-nav-bar">
+    <a href="https://github.com/golang/go"><svg height="16" viewBox="0 0 16 16" width="16"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path></svg> Code</a>
+    <a href="https://github.com/golang/go/issues" class="active"><svg height="16" viewBox="0 0 16 16" width="16"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path></svg> Issues <span class="nav-count">7k+</span></a>
+
+    <a href="https://github.com/golang/go/pulls"><svg height="16" viewBox="0 0 16 16" width="16"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path></svg> Pull requests <span class="nav-count">401</span></a>
+    <a href="https://github.com/golang/go/discussions"><svg height="16" viewBox="0 0 16 16" width="16"><path d="M1.75 1h8.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 10.25 10H7.061l-2.574 2.573A1.458 1.458 0 0 1 2 11.543V10h-.25A1.75 1.75 0 0 1 0 8.25v-5.5C0 1.784.784 1 1.75 1ZM1.5 2.75v5.5c0 .138.112.25.25.25h1.5a.75.75 0 0 1 .75.75v1.19l2.72-2.72a.749.749 0 0 1 .53-.22h3.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13-2a.25.25 0 0 0-.25-.25h-5.5a.75.75 0 0 1 0-1.5h5.5c.966 0 1.75.784 1.75 1.75v6.5a.75.75 0 0 1-1.5 0Z"></path></svg> Discussions</a>
+    <a href="https://github.com/golang/go/actions"><svg height="16" viewBox="0 0 16 16" width="16"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm4.879-2.773 4.264 2.559a.25.25 0 0 1 0 .428l-4.264 2.559A.25.25 0 0 1 6 10.559V5.442a.25.25 0 0 1 .379-.215Z"></path></svg> Actions</a>
+    <a href="https://github.com/golang/go/projects"><svg height="16" viewBox="0 0 16 16" width="16"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM6.5 6.5v8h7.75a.25.25 0 0 0 .25-.25V6.5ZM6.5 5h8V1.75a.25.25 0 0 0-.25-.25H6.5Zm-1.5 1.5H1.5v7.75c0 .138.112.25.25.25H5ZM5 5V1.5H1.75a.25.25 0 0 0-.25.25V5Z"></path></svg> Projects</a>
+    <a href="https://github.com/golang/go/wiki"><svg height="16" viewBox="0 0 16 16" width="16"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-.001 3.803-.002a.249.249 0 0 0 .25-.25V2.5H7.59A2.25 2.25 0 0 0 5.34 4.75zm-1.502 0V4.75A2.25 2.25 0 0 0 3.5 2.5H1.5v9h3.691a3.75 3.75 0 0 1 1.559.34Z"></path></svg> Wiki</a>
+    <a href="https://github.com/golang/go/security"><svg height="16" viewBox="0 0 16 16" width="16"><path d="m7.467.133a1.748 1.748 0 0 1 1.066 0l5.25 1.68A1.75 1.75 0 0 1 15 3.48V7c0 1.566-.32 3.182-1.303 4.682-.983 1.498-2.585 2.813-5.032 3.855a1.697 1.697 0 0 1-1.33 0c-2.447-1.042-4.049-2.357-5.032-3.855C1.32 10.182 1 8.566 1 7V3.48a1.75 1.75 0 0 1 1.217-1.667Zm.61 1.429a.25.25 0 0 0-.153 0l-5.25 1.68a.25.25 0 0 0-.174.238V7c0 1.358.275 2.666 1.057 3.86.784 1.194 2.121 2.34 4.366 3.297a.196.196 0 0 0 .154 0c2.245-.956 3.582-2.104 4.366-3.298C13.225 9.666 13.5 8.36 13.5 7V3.48a.251.251 0 0 0-.174-.237Z"></path></svg> Security and quality</a>
+    <a href="https://github.com/golang/go/pulse"><svg height="16" viewBox="0 0 16 16" width="16"><path d="M1.5 1.75V13.5h13.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75V1.75a.75.75 0 0 1 1.5 0Zm14.28 2.53-5.25 5.25a.75.75 0 0 1-1.06 0L7 7.06 4.28 9.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.25-3.25a.75.75 0 0 1 1.06 0L10 7.94l4.72-4.72a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path></svg> Insights</a>
+</div>
+
+<div class="issue-page">
+    <div class="issue-title-row">
+        <span class="issue-title">proposal: spec: add classical inheritance to Go</span>
+        <span class="issue-number">#78847</span>
+        <button class="new-issue-btn">New issue</button>
+    </div>
+
+    <div class="issue-meta">
+    <span class="issue-state">
+      <svg height="16" viewBox="0 0 16 16" width="16"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path></svg>
+      Open
+    </span>
+        <span class="issue-meta-text">
+      <a href="https://github.com/JustSkiv">JustSkiv</a> opened this issue 2 hours ago · 12 comments
+    </span>
+    </div>
+
+    <div class="issue-layout">
+        <div class="timeline-main">
+
+            <!-- OP COMMENT -->
+            <div class="comment">
+                <div class="comment-avatar">
+                    <img class="avatar-img" src="avatar.png" alt="">
+                </div>
+                <div class="comment-box op">
+                    <div class="comment-header">
+                        <a class="author" href="https://github.com/JustSkiv">JustSkiv</a>
+                        <span class="timestamp">2 hours ago</span>
+                        <span class="spacer"></span>
+                        <span class="edits">Edits</span>
+                        <span class="dots"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM1.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path></svg></span>
+                    </div>
+                    <div class="comment-body">
+                        <h2>Abstract</h2>
+
+                        <p>This proposal introduces single classical inheritance to Go via two context-sensitive keywords: <code>class</code> and <code>extends</code>. The goal is to eliminate pervasive boilerplate associated with struct embedding when modeling type hierarchies.</p>
+
+                        <h2>Motivation</h2>
+
+                        <p>Go's current approach to code reuse through struct embedding and interfaces works well for many cases, but breaks down when modeling domains with natural type hierarchies. Consider a typical example:</p>
+
+                        <pre><code><span class="kw">type</span> <span class="typ">BaseEntity</span> <span class="kw">struct</span> {
+    <span class="field">ID</span>        <span class="typ">int64</span>
+    <span class="field">CreatedAt</span> <span class="typ">time.Time</span>
+    <span class="field">UpdatedAt</span> <span class="typ">time.Time</span>
+}
+
+<span class="kw">func</span> (<span class="ident">b</span> *<span class="typ">BaseEntity</span>) <span class="fn">Validate</span>() <span class="typ">error</span> {
+    <span class="kw">if</span> <span class="ident">b</span>.<span class="field">ID</span> &lt; <span class="num">0</span> {
+        <span class="kw">return</span> <span class="ident">errors</span>.<span class="fn">New</span>(<span class="str">"invalid ID"</span>)
+    }
+    <span class="kw">return</span> <span class="kw">nil</span>
+}
+
+<span class="kw">type</span> <span class="typ">User</span> <span class="kw">struct</span> {
+    <span class="typ">BaseEntity</span>
+    <span class="field">Name</span>  <span class="typ">string</span>
+    <span class="field">Email</span> <span class="typ">string</span>
+}
+
+<span class="kw">func</span> (<span class="ident">u</span> *<span class="typ">User</span>) <span class="fn">Validate</span>() <span class="typ">error</span> {
+    <span class="kw">if</span> <span class="ident">err</span> := <span class="ident">u</span>.<span class="typ">BaseEntity</span>.<span class="fn">Validate</span>(); <span class="ident">err</span> != <span class="kw">nil</span> {
+        <span class="kw">return</span> <span class="ident">err</span>
+    }
+    <span class="kw">if</span> <span class="ident">u</span>.<span class="field">Email</span> == <span class="str">""</span> {
+        <span class="kw">return</span> <span class="ident">errors</span>.<span class="fn">New</span>(<span class="str">"email is required"</span>)
+    }
+    <span class="kw">return</span> <span class="kw">nil</span>
+}</code><div class="code-copy"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" fill="#8b949e"></path></svg></div></pre>
+
+                        <p>This works for a single level of embedding. In practice, as hierarchies grow deeper, several problems emerge:</p>
+
+                        <ul>
+                            <li><strong>Method delegation boilerplate.</strong> When an embedded type's method signature doesn't match the outer type's interface requirements, manual wrapper methods are needed. In large codebases with 3–4 levels of embedding, this produces hundreds of trivial one-line delegation methods.</li>
+                            <li><strong>No polymorphic dispatch.</strong> Embedded methods don't know about the outer type. A method on <code>BaseEntity</code> cannot call an overridden method on <code>User</code> — there is no dynamic dispatch. This forces repeated reimplementation rather than extension.</li>
+                            <li><strong>Embedding is not subtyping.</strong> A <code>*User</code> cannot be passed where a <code>*BaseEntity</code> is expected. This leads to additional adapter code or use of interfaces solely to simulate subtype relationships, causing unnecessary heap escapes.</li>
+                        </ul>
+
+                        <h2>Proposal</h2>
+
+                        <p>Introduce <code>class</code> and <code>extends</code> as context-sensitive keywords, parsed only at the top level of type declarations.</p>
+
+                        <h3>Syntax</h3>
+
+                        <pre><code><span class="kw">type</span> <span class="typ">Entity</span> <span class="kw">class</span> {
+    <span class="field">ID</span>        <span class="typ">int64</span>
+    <span class="field">CreatedAt</span> <span class="typ">time.Time</span>
+    <span class="field">UpdatedAt</span> <span class="typ">time.Time</span>
+}
+
+<span class="kw">func</span> (<span class="ident">e</span> *<span class="typ">Entity</span>) <span class="fn">Validate</span>() <span class="typ">error</span> {
+    <span class="kw">if</span> <span class="ident">e</span>.<span class="field">ID</span> &lt; <span class="num">0</span> {
+        <span class="kw">return</span> <span class="ident">errors</span>.<span class="fn">New</span>(<span class="str">"invalid ID"</span>)
+    }
+    <span class="kw">return</span> <span class="kw">nil</span>
+}
+
+<span class="kw">type</span> <span class="typ">User</span> <span class="kw">extends</span> <span class="typ">Entity</span> {
+    <span class="field">Name</span>  <span class="typ">string</span>
+    <span class="field">Email</span> <span class="typ">string</span>
+}
+
+<span class="kw">func</span> (<span class="ident">u</span> *<span class="typ">User</span>) <span class="fn">Validate</span>() <span class="typ">error</span> {
+    <span class="kw">if</span> <span class="ident">err</span> := <span class="typ">Entity</span>.<span class="fn">Validate</span>(<span class="ident">u</span>); <span class="ident">err</span> != <span class="kw">nil</span> {
+        <span class="kw">return</span> <span class="ident">err</span>
+    }
+    <span class="kw">if</span> <span class="ident">u</span>.<span class="field">Email</span> == <span class="str">""</span> {
+        <span class="kw">return</span> <span class="ident">errors</span>.<span class="fn">New</span>(<span class="str">"email is required"</span>)
+    }
+    <span class="kw">return</span> <span class="kw">nil</span>
+}</code><div class="code-copy"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" fill="#8b949e"></path></svg></div></pre>
+
+                        <h3>Semantics</h3>
+
+                        <ul>
+                            <li><code>class</code> marks a type as inheritable. Regular structs are unaffected and cannot be extended.</li>
+                            <li><code>extends</code> establishes a single-inheritance relationship.</li>
+                            <li>A child class inherits all fields and methods of the parent. Method override is supported via standard single-dispatch vtable lookup.</li>
+                            <li>A <code>*User</code> is assignable to <code>*Entity</code> (true subtyping).</li>
+                            <li><strong>No array/slice covariance:</strong> <code>[]*User</code> is NOT assignable to <code>[]*Entity</code>, to preserve type safety.</li>
+                            <li>Classes implicitly satisfy interfaces, exactly as structs do today.</li>
+                        </ul>
+
+                        <h3>What this is not</h3>
+
+                        <p>This is not an attempt to turn Go into Java. The proposal is deliberately minimal:</p>
+
+                        <ul>
+                            <li>No abstract classes.</li>
+                            <li>No access modifiers beyond existing exported/unexported rules.</li>
+                            <li>No multiple inheritance.</li>
+                            <li>No constructors — use factory functions as today.</li>
+                            <li>No new <code>super</code> keyword. Parent methods are called explicitly via <code>ParentType.Method(receiver)</code> syntax, consistent with how promoted methods work today.</li>
+                        </ul>
+
+                        <h2>Compatibility</h2>
+
+                        <p>To strictly adhere to the Go 1 compatibility promise, <code>class</code> and <code>extends</code> are implemented as <strong>contextual keywords</strong>, parsed only in type declaration position. Existing code using <code>class</code> or <code>extends</code> as variable names, field names, or in any other position will continue to compile unchanged.</p>
+
+                        <p>The mechanism is purely additive.</p>
+
+                        <h2>Implementation</h2>
+
+                        <p>A working prototype is available at <a href="https://github.com/JustSkiv/go-inherit">github.com/JustSkiv/go-inherit</a>, based on <code>go1.26</code>. It passes 97.3% of the standard library tests. The remaining failures are primarily in <code>reflect</code> and <code>encoding/gob</code>, which require updates to handle the new <code>reflect.Class</code> type metadata.</p>
+
+                        <p>The implementation touches:</p>
+
+                        <ul>
+                            <li><code>cmd/compile</code>: parsing of contextual keywords, vtable generation for class methods</li>
+                            <li><code>runtime</code>: type metadata extensions for <code>_type</code> to support fast subtyping checks</li>
+                            <li><code>reflect</code>: support for class type inspection</li>
+                        </ul>
+
+                        <p>Estimated total diff: ~3,200 lines added, ~400 removed.</p>
+
+                        <p><em>/cc <a href="https://github.com/rsc">@rsc</a> <a href="https://github.com/griesemer">@griesemer</a> <a href="https://github.com/ianlancetaylor">@ianlancetaylor</a></em></p>
+                    </div>
+                    <div class="comment-reactions">
+                        <span class="reaction-add"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.614-.431c.614.43.614.431.613.431v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213 3.015 3.015 0 0 1-.573.46A3.426 3.426 0 0 1 8 11.5a3.426 3.426 0 0 1-1.863-.546 3.018 3.018 0 0 1-.573-.46 2.058 2.058 0 0 1-.198-.232l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM6.5 6.5c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S4.948 5 5.5 5s1 .672 1 1.5Zm3 0c0 .828.448 1.5 1 1.5s1-.672 1-1.5-.448-1.5-1-1.5-1 .672-1 1.5Z"></path></svg></span>
+                        <span class="reaction-btn reacted">👍 14</span>
+                        <span class="reaction-btn">👎 31</span>
+                        <span class="reaction-btn reacted">😄 8</span>
+                        <span class="reaction-btn">😕 19</span>
+                        <span class="reaction-btn">👀 7</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMENT: rittneje -->
+            <div class="comment">
+                <div class="comment-avatar">
+                    <img class="avatar-img" src="https://avatars.githubusercontent.com/u/28784688?v=4&s=80" alt="">
+                </div>
+                <div class="comment-box">
+                    <div class="comment-header">
+                        <a class="author" href="https://github.com/rittneje">rittneje</a>
+                        <span class="timestamp">1 hour ago</span>
+                        <span class="spacer"></span>
+                        <span class="dots"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM1.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path></svg></span>
+                    </div>
+                    <div class="comment-body">
+                        <p>I've been writing Go professionally for 8 years — distributed systems, observability tooling, databases. Embedding + interfaces cover 99% of real-world use cases. I have never once hit a wall where inheritance would have been the answer.</p>
+                        <p>Can you provide a single concrete production example where classical inheritance solves a problem that interfaces + composition genuinely cannot? Not a toy <code>Animal</code>/<code>Dog</code> hierarchy, but something from a real codebase.</p>
+                        <p>The scheduler/GC arguments are interesting but very hand-wavy. "Approximately 30%" is not something you can eyeball from reading <code>proc.go</code>.</p>
+                    </div>
+                    <div class="comment-reactions">
+                        <span class="reaction-add"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.614-.431c.614.43.614.431.613.431v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213 3.015 3.015 0 0 1-.573.46A3.426 3.426 0 0 1 8 11.5a3.426 3.426 0 0 1-1.863-.546 3.018 3.018 0 0 1-.573-.46 2.058 2.058 0 0 1-.198-.232l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM6.5 6.5c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S4.948 5 5.5 5s1 .672 1 1.5Zm3 0c0 .828.448 1.5 1 1.5s1-.672 1-1.5-.448-1.5-1-1.5-1 .672-1 1.5Z"></path></svg></span>
+                        <span class="reaction-btn reacted">👍 12</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMENT: andydotxyz -->
+            <div class="comment">
+                <div class="comment-avatar">
+                    <img class="avatar-img" src="https://avatars.githubusercontent.com/u/294436?v=4&s=80" alt="">
+                </div>
+                <div class="comment-box">
+                    <div class="comment-header">
+                        <a class="author" href="https://github.com/andydotxyz">andydotxyz</a>
+                        <span class="timestamp">48 minutes ago</span>
+                        <span class="spacer"></span>
+                        <span class="dots"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM1.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path></svg></span>
+                    </div>
+                    <div class="comment-body">
+                        <p>I'll be honest — I feel the pain. We have a large codebase with deeply nested embedding, and the boilerplate for method delegation is real. Some of our types embed 3–4 structs and we end up writing dozens of pass-through methods just to satisfy interfaces.</p>
+                        <p>But adding classical inheritance to fix this is like curing a headache with a guillotine. The problem is real, the solution isn't.</p>
+                        <p>I'd rather see something like Rust's traits, or honestly just better tooling — <code>go generate</code> + a smart delegation generator could eliminate 90% of this boilerplate without touching the language spec at all.</p>
+                    </div>
+                    <div class="comment-reactions">
+                        <span class="reaction-add"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.614-.431c.614.43.614.431.613.431v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213 3.015 3.015 0 0 1-.573.46A3.426 3.426 0 0 1 8 11.5a3.426 3.426 0 0 1-1.863-.546 3.018 3.018 0 0 1-.573-.46 2.058 2.058 0 0 1-.198-.232l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM6.5 6.5c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S4.948 5 5.5 5s1 .672 1 1.5Zm3 0c0 .828.448 1.5 1 1.5s1-.672 1-1.5-.448-1.5-1-1.5-1 .672-1 1.5Z"></path></svg></span>
+                        <span class="reaction-btn reacted">👍 5</span>
+                        <span class="reaction-btn">😄 2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMENT: willfaught -->
+            <div class="comment">
+                <div class="comment-avatar">
+                    <img class="avatar-img" src="https://avatars.githubusercontent.com/u/63830?v=4&s=80" alt="">
+                </div>
+                <div class="comment-box">
+                    <div class="comment-header">
+                        <a class="author" href="https://github.com/willfaught">willfaught</a>
+                        <span class="timestamp">31 minutes ago</span>
+                        <span class="spacer"></span>
+                        <span class="dots"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM1.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path></svg></span>
+                    </div>
+                    <div class="comment-body">
+                        <p>Next proposal: add semicolons, <code>try</code>/<code>catch</code>, and <code>public static void main</code> to Go. Maybe a <code>pom.xml</code> too while we're at it.</p>
+                    </div>
+                    <div class="comment-reactions">
+                        <span class="reaction-add"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.614-.431c.614.43.614.431.613.431v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213 3.015 3.015 0 0 1-.573.46A3.426 3.426 0 0 1 8 11.5a3.426 3.426 0 0 1-1.863-.546 3.018 3.018 0 0 1-.573-.46 2.058 2.058 0 0 1-.198-.232l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM6.5 6.5c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S4.948 5 5.5 5s1 .672 1 1.5Zm3 0c0 .828.448 1.5 1 1.5s1-.672 1-1.5-.448-1.5-1-1.5-1 .672-1 1.5Z"></path></svg></span>
+                        <span class="reaction-btn">😄 9</span>
+                        <span class="reaction-btn reacted">👍 3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMENT: apparentlymart -->
+            <div class="comment">
+                <div class="comment-avatar">
+                    <img class="avatar-img" src="https://avatars.githubusercontent.com/u/20180?v=4&s=80" alt="">
+                </div>
+                <div class="comment-box">
+                    <div class="comment-header">
+                        <a class="author" href="https://github.com/apparentlymart">apparentlymart</a>
+                        <span class="timestamp">12 minutes ago</span>
+                        <span class="spacer"></span>
+                        <span class="dots"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM1.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path></svg></span>
+                    </div>
+                    <div class="comment-body">
+                        <p>@JustSkiv — the <code>GuideDog extends Dog extends Animal</code> hierarchy in your proposal is actually a textbook example of why inheritance breaks down on real domain models.</p>
+                        <p>Consider what happens when product asks for a <code>RobotGuideDog</code> that isn't biologically a <code>Dog</code> at all. With inheritance you'd need to refactor the entire chain or introduce a parallel hierarchy. With interfaces, you just do this:</p>
+                        <pre><code><span class="kw">type</span> <span class="typ">Speaker</span> <span class="kw">interface</span> {
+    <span class="fn">Speak</span>() <span class="typ">string</span>
+}
+
+<span class="kw">type</span> <span class="typ">GuideDog</span> <span class="kw">struct</span> {
+    <span class="field">Name</span>  <span class="typ">string</span>
+    <span class="field">Owner</span> <span class="typ">string</span>
+}
+
+<span class="kw">func</span> (<span class="ident">g</span> <span class="typ">GuideDog</span>) <span class="fn">Speak</span>() <span class="typ">string</span>  { <span class="kw">return</span> <span class="str">"Woof!"</span> }
+
+<span class="kw">type</span> <span class="typ">RobotGuide</span> <span class="kw">struct</span> {
+    <span class="field">Model</span> <span class="typ">string</span>
+    <span class="field">Owner</span> <span class="typ">string</span>
+}
+
+<span class="kw">func</span> (<span class="ident">r</span> <span class="typ">RobotGuide</span>) <span class="fn">Speak</span>() <span class="typ">string</span> { <span class="kw">return</span> <span class="str">"Beep."</span> }
+
+<span class="cm">// Both satisfy Speaker. No hierarchy needed.</span></code></pre>
+                        <p>This composes cleanly and doesn't lock you into an ontology you'll regret in six months.</p>
+                        <p>Regarding the itab overhead claim — 12–15% only holds in tight-loop microbenchmarks where the CPU branch predictor can't warm up. In any real application with diverse call sites, inline caching brings interface dispatch within 1–2ns of a direct call. The runtime team has <a href="https://github.com/golang/go/issues/18367">measured this extensively</a>.</p>
+                        <p>I appreciate the effort and the research into the runtime, genuinely. But the conclusion doesn't follow from the evidence.</p>
+                    </div>
+                    <div class="comment-reactions">
+                        <span class="reaction-add"><svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.614-.431c.614.43.614.431.613.431v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213 3.015 3.015 0 0 1-.573.46A3.426 3.426 0 0 1 8 11.5a3.426 3.426 0 0 1-1.863-.546 3.018 3.018 0 0 1-.573-.46 2.058 2.058 0 0 1-.198-.232l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM6.5 6.5c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S4.948 5 5.5 5s1 .672 1 1.5Zm3 0c0 .828.448 1.5 1 1.5s1-.672 1-1.5-.448-1.5-1-1.5-1 .672-1 1.5Z"></path></svg></span>
+                        <span class="reaction-btn reacted">👍 8</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADD COMMENT -->
+            <div class="add-comment">
+                <div class="add-comment-avatar">
+                    <svg width="20" height="20" viewBox="0 0 16 16"><path d="M10.561 8.073a6.005 6.005 0 0 1 3.432 5.142.75.75 0 1 1-1.498.07 4.5 4.5 0 0 0-8.99 0 .75.75 0 0 1-1.498-.07 6.004 6.004 0 0 1 3.431-5.142 3.999 3.999 0 1 1 5.123 0ZM10.5 5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"></path></svg>
+                </div>
+                <div class="add-comment-box">
+                    <div class="add-comment-tabs">
+                        <button class="add-comment-tab active">Write</button>
+                        <button class="add-comment-tab">Preview</button>
+                    </div>
+                    <textarea class="add-comment-textarea" placeholder="Add your comment here..."></textarea>
+                    <div class="add-comment-footer">
+                        <button class="btn-secondary">Close issue</button>
+                        <button class="btn-primary">Comment</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <section>
+                <div class="sidebar-title">Assignees</div>
+                <div class="sidebar-item">No one assigned</div>
+            </section>
+            <section>
+                <div class="sidebar-title">Labels</div>
+                <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:4px;">
+                    <span class="gh-label label-proposal">Proposal</span>
+                    <span class="gh-label label-lang-change">LanguageChange</span>
+                    <span class="gh-label label-go2">Go2</span>
+                </div>
+            </section>
+            <section>
+                <div class="sidebar-title">Type</div>
+                <div class="sidebar-item">No type</div>
+            </section>
+            <section>
+                <div class="sidebar-title">Projects</div>
+                <div class="project-widget">
+                    <div class="project-widget-title">
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25V1.75C0 .784.784 0 1.75 0ZM1.5 1.75v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25Z" fill="#8b949e"></path></svg>
+                        Proposals
+                    </div>
+                    <div class="project-status-row">
+                        <span class="status-label">Status</span>
+                        <select class="project-status-select"><option>Incoming</option></select>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <div class="sidebar-title">Milestone</div>
+                <div class="milestone-widget">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="#8b949e"><path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 0 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Z"></path></svg>
+                    <div>
+                        <div class="milestone-name">Proposal</div>
+                        <div class="milestone-due">No due date</div>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <div class="sidebar-title">Relationships</div>
+                <div class="sidebar-item">None yet</div>
+            </section>
+            <section>
+                <div class="sidebar-title">Development</div>
+                <button class="dev-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 14.25 13H1.75A1.75 1.75 0 0 1 0 10.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25ZM14.25 15H1.75a.75.75 0 0 1 0-1.5h12.5a.75.75 0 0 1 0 1.5Z" fill="#8b949e"></path></svg>
+                    Code with agent mode
+                    <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="#8b949e" style="margin-left:auto;"><path d="M6 8.825a.5.5 0 0 1-.354-.146l-3.5-3.5a.5.5 0 0 1 .708-.708L6 7.618l3.146-3.147a.5.5 0 0 1 .708.708l-3.5 3.5A.5.5 0 0 1 6 8.825z"></path></svg>
+                </button>
+                <div class="sidebar-item" style="margin-top:8px;">No branches or pull requests</div>
+            </section>
+            <section>
+                <div class="sidebar-title">12 participants</div>
+                <div class="participant-list">
+                    <div class="participant-avatar"><img class="avatar-img" src="avatar.png" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar"><img class="avatar-img" src="https://avatars.githubusercontent.com/u/28784688?v=4&s=56" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar"><img class="avatar-img" src="https://avatars.githubusercontent.com/u/294436?v=4&s=56" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar"><img class="avatar-img" src="https://avatars.githubusercontent.com/u/63830?v=4&s=56" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar"><img class="avatar-img" src="https://avatars.githubusercontent.com/u/20180?v=4&s=56" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar"><img class="avatar-img" src="https://avatars.githubusercontent.com/u/3194333?v=4&s=56" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar"><img class="avatar-img" src="https://avatars.githubusercontent.com/u/3576549?v=4&s=56" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar"><img class="avatar-img" src="https://avatars.githubusercontent.com/u/19653795?v=4&s=56" alt="" style="width:28px;height:28px;"></div>
+                    <div class="participant-avatar" style="background:#30363d; color: #8b949e; font-size:10px;">+4</div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
